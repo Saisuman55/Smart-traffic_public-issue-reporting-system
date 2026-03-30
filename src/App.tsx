@@ -1,24 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { UserProfile } from './types';
 
 import Layout from './components/Layout';
 import Auth from './components/Auth';
-import Dashboard from './components/Dashboard';
-import ReportForm from './components/ReportForm';
-import Analytics from './components/Analytics';
-import AdminPanel from './components/AdminPanel';
-import Chatbot from './components/Chatbot';
-import Profile from './components/Profile';
-import Notifications from './components/Notifications';
-import IssueDetails from './components/IssueDetails';
-import Leaderboard from './components/Leaderboard';
-import LiveFeed from './components/LiveFeed';
-import UserGuide from './components/UserGuide';
 import LoadingSpinner from './components/ui/LoadingSpinner';
 
 import { Toaster } from 'sonner';
 import { I18nProvider, useI18n } from './i18n';
+
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const ReportForm = lazy(() => import('./components/ReportForm'));
+const Analytics = lazy(() => import('./components/Analytics'));
+const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const Chatbot = lazy(() => import('./components/Chatbot'));
+const Profile = lazy(() => import('./components/Profile'));
+const Notifications = lazy(() => import('./components/Notifications'));
+const IssueDetails = lazy(() => import('./components/IssueDetails'));
+const Leaderboard = lazy(() => import('./components/Leaderboard'));
+const LiveFeed = lazy(() => import('./components/LiveFeed'));
+const UserGuide = lazy(() => import('./components/UserGuide'));
 
 function decodeJwt(token: string): any {
   try {
@@ -40,6 +41,14 @@ function buildUserProfile(raw: any, decoded: any): UserProfile {
     location: raw.location || undefined,
     joinedAt: raw.createdAt || raw.joinedAt || new Date().toISOString(),
   };
+}
+
+function RouteFallback() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <LoadingSpinner label="Loading page..." />
+    </div>
+  );
 }
 
 // ================== APP CONTENT ==================
@@ -73,23 +82,27 @@ function AppContent({
 
   return (
     <Layout user={user}>
-      <Routes>
-        <Route path="/" element={<Dashboard user={user} />} />
-        <Route path="/report" element={<ReportForm onSuccess={() => navigate('/')} />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/leaderboard" element={<Leaderboard />} />
-        <Route path="/live" element={<LiveFeed />} />
-        <Route path="/profile" element={<Profile onUpdate={setUser} />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/guide" element={<UserGuide />} />
-        <Route path="/issue/:id" element={<IssueDetails />} />
-        <Route
-          path="/admin"
-          element={user.role === 'admin' ? <AdminPanel /> : <Navigate to="/" />}
-        />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-      <Chatbot />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<Dashboard user={user} />} />
+          <Route path="/report" element={<ReportForm onSuccess={() => navigate('/')} />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/live" element={<LiveFeed />} />
+          <Route path="/profile" element={<Profile onUpdate={setUser} />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/guide" element={<UserGuide />} />
+          <Route path="/issue/:id" element={<IssueDetails />} />
+          <Route
+            path="/admin"
+            element={user.role === 'admin' ? <AdminPanel /> : <Navigate to="/" />}
+          />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Suspense>
+      <Suspense fallback={null}>
+        <Chatbot />
+      </Suspense>
       <Toaster position="top-right" richColors closeButton />
     </Layout>
   );

@@ -1,20 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { auth } from '../currentUser';
 import { IssueReport, UserProfile } from '../types';
 import IssueCard from './IssueCard';
 import LoadingSpinner from './ui/LoadingSpinner';
 import { Map as MapIcon, List as ListIcon, Search, Loader2, MapPin, AlertCircle, Users, CheckCircle2, Clock, ChevronDown, Activity, ShieldAlert, X, TrendingUp, Zap } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
 import { motion } from 'motion/react';
-import 'leaflet/dist/leaflet.css';
-import icon from 'leaflet/dist/images/marker-icon.png';
-import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useI18n } from '../i18n';
 
-L.Marker.prototype.options.icon = L.icon({ iconUrl: icon, shadowUrl: iconShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
+const DashboardMap = lazy(() => import('./DashboardMap'));
 
 interface DashboardProps { user: UserProfile | null; }
 
@@ -132,17 +127,6 @@ export default function Dashboard({ user }: DashboardProps) {
   const center: [number, number] = userLocation ?? (filteredIssues.length > 0
     ? [filteredIssues.reduce((s, i) => s + i.latitude, 0) / filteredIssues.length, filteredIssues.reduce((s, i) => s + i.longitude, 0) / filteredIssues.length]
     : [20.2961, 85.8245]);
-
-  function ChangeView({ issues, userLocation }: { issues: IssueReport[], userLocation: [number, number] | null }) {
-    const map = useMap();
-    useEffect(() => {
-      const bounds = L.latLngBounds([]);
-      if (userLocation) bounds.extend(userLocation);
-      issues.forEach(i => bounds.extend([i.latitude, i.longitude]));
-      if (bounds.isValid()) map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-    }, [issues, userLocation, map]);
-    return null;
-  }
 
   const STATUS_NEON: Record<string, { bg: string; color: string }> = {
     All:          { bg: 'rgba(99,102,241,0.08)',  color: '#6366F1' },
@@ -368,24 +352,14 @@ export default function Dashboard({ user }: DashboardProps) {
           )}
         </div>
       ) : (
-        <div className="h-[420px] lg:h-[560px] rounded-2xl overflow-hidden relative" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
-          <MapContainer center={center} zoom={12} scrollWheelZoom className="h-full w-full z-0">
-            <ChangeView issues={filteredIssues} userLocation={userLocation} />
-            <TileLayer attribution='&copy; OpenStreetMap' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {userLocation && <Marker position={userLocation}><Popup><p className="font-bold text-xs" style={{ color: '#00FF88' }}>{t('dashboard.you_are_here')}</p></Popup></Marker>}
-            {filteredIssues.map(issue => (
-              <Marker key={issue.id} position={[issue.latitude, issue.longitude]}>
-                <Popup>
-                  <div className="p-2 max-w-[200px]">
-                    <img src={issue.imageUrl} className="w-full aspect-video object-cover rounded-lg mb-2" alt="Issue" />
-                    <p className="text-xs font-semibold text-zinc-100 line-clamp-2 mb-1">{issue.description}</p>
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{issue.status}</span>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-        </div>
+        <Suspense fallback={<div className="h-[420px] lg:h-[560px] rounded-2xl flex items-center justify-center glass-dark"><LoadingSpinner label={t('dashboard.syncing')} /></div>}>
+          <DashboardMap
+            center={center}
+            filteredIssues={filteredIssues}
+            userLocation={userLocation}
+            youAreHereLabel={t('dashboard.you_are_here')}
+          />
+        </Suspense>
       )}
     </div>
   );

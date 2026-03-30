@@ -5,6 +5,21 @@ import User from "../models/User.js";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-only-change-me";
+const DEFAULT_ADMIN_EMAILS = ["saisumansamantaray184@gmail.com"];
+
+function getAdminEmails() {
+  const configured = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+
+  return new Set([...DEFAULT_ADMIN_EMAILS, ...configured]);
+}
+
+function isAdminEmail(email?: string) {
+  if (!email) return false;
+  return getAdminEmails().has(email.trim().toLowerCase());
+}
 
 // REGISTER
 router.post("/register", async (req, res) => {
@@ -21,7 +36,12 @@ router.post("/register", async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, email, password: hashed });
+    const user = await User.create({
+      name,
+      email,
+      password: hashed,
+      role: isAdminEmail(email) ? "admin" : "user",
+    });
 
     res.json({ msg: "User registered", user });
   } catch (err) {
@@ -39,9 +59,14 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ msg: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ msg: "No account found with this email" });
+    }
+
+    if (isAdminEmail(email) && user.role !== "admin") {
+      user.role = "admin";
+      await user.save();
     }
 
     if (user.isBanned) {

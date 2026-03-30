@@ -191,6 +191,7 @@ Create a local `.env` file from `.env.example` and set the values below:
 ```bash
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=replace_with_a_long_random_secret
+ADMIN_EMAILS=your-email@example.com
 PORT=3000
 GEMINI_API_KEY=your_gemini_api_key
 VITE_API_URL=http://localhost:3000
@@ -199,6 +200,7 @@ VITE_API_URL=http://localhost:3000
 Notes:
 
 - `JWT_SECRET` must be set in production. Do not reuse placeholder values.
+- `ADMIN_EMAILS` can be used as a comma-separated allowlist for accounts that should automatically receive admin access.
 - `VITE_API_URL` is optional for local development if you use the Vite proxy, but it should point at your deployed API in production.
 - `.env`, `.env.local`, and other local env files are ignored by Git.
 

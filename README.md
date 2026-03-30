@@ -4,8 +4,6 @@ The Civic Authority is a smart traffic and public issue reporting system built f
 
 Live app: https://the-civic-authority-theta.vercel.app
 
-GitHub repository: https://github.com/Saisuman55/Smart-traffic_public-issue-reporting-system
-
 ## Overview
 
 This project is designed as a civic issue intelligence platform rather than a plain complaint form. It combines public reporting, geolocation, image evidence, AI-assisted review, moderation workflows, and lightweight civic analytics in one application.

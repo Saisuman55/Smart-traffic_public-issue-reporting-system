@@ -262,15 +262,17 @@ Known area for future improvement:
 
 ## Team Contributions
 
-This project was developed as a team effort by:
+This project was carried out as a collaborative academic team project. The major areas of contribution are summarized below:
 
 | S.No. | Name | Registration No. | Contribution Area |
 | --- | --- | --- | --- |
-| 1 | Sai Suman Samantaray | 2301020565 | Project integration, GitHub setup, deployment configuration, repository cleanup, documentation, and overall coordination |
-| 2 | Suvrajit Senapati | 2301020597 | Frontend UI development, dashboard views, navigation flow, and user experience polishing |
-| 3 | Sanjay Kumar Sahoo | 2301020568 | Backend API development, database models, authentication routes, and server-side logic |
-| 4 | Satya Spandan Rout | 2301020570 | Admin panel workflows, issue moderation features, analytics support, and report management tools |
-| 5 | Rohan Anand | 2301020560 | AI-assisted features, chatbot integration, image validation flow, location-based reporting support, and testing assistance |
+| 1 | Sai Suman Samantaray | 2301020565 | Overall project coordination, repository management, deployment setup, documentation refinement, and final system integration |
+| 2 | Suvrajit Senapati | 2301020597 | Frontend interface design, dashboard development, routing structure, and user interaction flow |
+| 3 | Sanjay Kumar Sahoo | 2301020568 | Backend service implementation, authentication logic, API route development, and database connectivity |
+| 4 | Satya Spandan Rout | 2301020570 | Administrative module development, issue moderation workflow, analytics-related features, and report handling tools |
+| 5 | Rohan Anand | 2301020560 | AI-enabled modules, chatbot support, image validation assistance, location-aware reporting support, and testing collaboration |
+
+The contribution mapping above reflects the primary responsibilities handled by each team member during the development of the project.
 
 ## Publishing To GitHub
 

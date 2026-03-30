@@ -76,6 +76,12 @@ Typical use cases include:
 - `AdminPanel`: moderation, user administration, AI audit, and broadcast tools
 - `Chatbot`: AI assistant for civic-reporting help
 
+## Dashboard Preview
+
+![The Civic Authority Dashboard](./image.png)
+
+The dashboard provides a real-time overview of civic reports submitted through the platform. It highlights key metrics such as total reports, verified reports, pending cases, and active citizens, while also offering category filters, status filters, search, live feed visibility, and map or grid-based monitoring of reported issues.
+
 ## Tech Stack
 
 - React 19 + Vite

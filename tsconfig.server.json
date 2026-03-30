@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "outDir": "dist"
+  },
+  "include": ["server.ts", "src/routes", "src/models", "src/config", "src/middleware"],
+  "exclude": ["node_modules"]
+}

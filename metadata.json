@@ -1,0 +1,11 @@
+{
+  "name": "The Civic Authority",
+  "description": "Smart Traffic & Public Issue Reporting System for Indian urban and rural infrastructure management.",
+  "homepage": "https://the-civic-authority-theta.vercel.app",
+  "repository": "https://github.com/Saisuman55/Smart-traffic_public-issue-reporting-system",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation",
+    "microphone"
+  ]
+}

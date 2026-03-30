@@ -1,0 +1,28 @@
+node_modules/
+dist/
+build/
+coverage/
+.DS_Store
+Thumbs.db
+*.log
+*.txt
+
+# Local tooling
+.amazonq/
+.vercel/
+
+# Environment files - NEVER commit these
+.env
+.env.local
+.env.production
+.env.development
+!.env.example
+
+# Database and local state
+civic.db
+*.db
+
+# Generated or local-only project files
+firebase-applet-config.json
+firebase-blueprint.json
+User Issue Reporting-2026-03-26-065519.png

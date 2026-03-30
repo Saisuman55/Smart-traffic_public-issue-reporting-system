@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": false,
+
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+
+    "skipLibCheck": true,
+    "strict": false,
+
+    "allowJs": true,
+    "resolveJsonModule": true,
+
+    "isolatedModules": true,
+    "moduleDetection": "force",
+
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+
+  "include": ["src"],
+  "exclude": ["node_modules", "src/routes", "src/models", "src/config", "src/middleware"]
+}

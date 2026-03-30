@@ -264,13 +264,13 @@ Known area for future improvement:
 
 This project was developed as a team effort by:
 
-| S.No. | Name | Registration No. |
-| --- | --- | --- |
-| 1 | Sai Suman Samantaray | 2301020565 |
-| 2 | Suvrajit Senapati | 2301020597 |
-| 3 | Sanjay Kumar Sahoo | 2301020568 |
-| 4 | Satya Spandan Rout | 2301020570 |
-| 5 | Rohan Anand | 2301020560 |
+| S.No. | Name | Registration No. | Contribution Area |
+| --- | --- | --- | --- |
+| 1 | Sai Suman Samantaray | 2301020565 | Project integration, GitHub setup, deployment configuration, repository cleanup, documentation, and overall coordination |
+| 2 | Suvrajit Senapati | 2301020597 | Frontend UI development, dashboard views, navigation flow, and user experience polishing |
+| 3 | Sanjay Kumar Sahoo | 2301020568 | Backend API development, database models, authentication routes, and server-side logic |
+| 4 | Satya Spandan Rout | 2301020570 | Admin panel workflows, issue moderation features, analytics support, and report management tools |
+| 5 | Rohan Anand | 2301020560 | AI-assisted features, chatbot integration, image validation flow, location-based reporting support, and testing assistance |
 
 ## Publishing To GitHub
 

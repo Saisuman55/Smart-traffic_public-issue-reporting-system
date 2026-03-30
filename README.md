@@ -22,7 +22,6 @@ The root app is the primary runnable project:
 - `src/`: frontend source used by the root Vite app
 - `server.ts`: Express API entrypoint
 - `src/routes`, `src/models`, `src/config`, `src/middleware`: backend API code
-- `frontend/` and `backend/`: alternate split copies kept in the project, but the root package is the main path validated in this repository
 
 ## Prerequisites
 
@@ -95,6 +94,7 @@ npm run build:server
 - `render.yaml` is configured to read `JWT_SECRET` and `MONGODB_URI` from the deployment environment instead of storing secrets in the repository.
 - `vercel.json` is included for SPA routing on Vercel.
 - `railway.json` is included for Railway-based deployments.
+- The live frontend is deployed at `https://the-civic-authority-theta.vercel.app`.
 
 ## Publishing To GitHub
 

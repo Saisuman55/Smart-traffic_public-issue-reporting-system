@@ -2,24 +2,10 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { isAdminEmail } from "../config/adminEmails.js";
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev-only-change-me";
-const DEFAULT_ADMIN_EMAILS = ["saisumansamantaray184@gmail.com"];
-
-function getAdminEmails() {
-  const configured = (process.env.ADMIN_EMAILS || "")
-    .split(",")
-    .map((email) => email.trim().toLowerCase())
-    .filter(Boolean);
-
-  return new Set([...DEFAULT_ADMIN_EMAILS, ...configured]);
-}
-
-function isAdminEmail(email?: string) {
-  if (!email) return false;
-  return getAdminEmails().has(email.trim().toLowerCase());
-}
 
 // REGISTER
 router.post("/register", async (req, res) => {

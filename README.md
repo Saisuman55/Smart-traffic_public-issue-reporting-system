@@ -201,6 +201,7 @@ Notes:
 
 - `JWT_SECRET` must be set in production. Do not reuse placeholder values.
 - `ADMIN_EMAILS` can be used as a comma-separated allowlist for accounts that should automatically receive admin access.
+- On backend startup, any existing account whose email is in the admin allowlist is promoted to `admin` automatically.
 - `VITE_API_URL` is optional for local development if you use the Vite proxy, but it should point at your deployed API in production.
 - `.env`, `.env.local`, and other local env files are ignored by Git.
 

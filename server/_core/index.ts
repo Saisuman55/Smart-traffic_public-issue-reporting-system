@@ -37,7 +37,7 @@ async function startServer() {
   registerOAuthRoutes(app);
   
   // File upload endpoint
-  app.post("/api/upload", express.raw({ type: "application/octet-stream", limit: "50mb" }), async (req, res) => {
+  app.post("/api/upload", express.raw({ type: "image/*", limit: "50mb" }), async (req, res) => {
     try {
       const { storagePut } = await import("../storage");
       const { nanoid } = await import("nanoid");
@@ -46,8 +46,10 @@ async function startServer() {
         return res.status(400).json({ error: "No file provided" });
       }
       
-      const fileKey = `uploads/${Date.now()}-${nanoid()}.jpg`;
-      const { url } = await storagePut(fileKey, req.body, "image/jpeg");
+      const contentType = (req.headers["content-type"] || "image/jpeg") as string;
+      const ext = contentType.split("/")[1]?.split(";")[0] || "jpg";
+      const fileKey = `uploads/${Date.now()}-${nanoid()}.${ext}`;
+      const { url } = await storagePut(fileKey, req.body, contentType);
       
       res.json({ url });
     } catch (error) {

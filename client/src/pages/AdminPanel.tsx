@@ -30,21 +30,21 @@ export default function AdminPanel() {
   const [, navigate] = useLocation();
   const [selectedTab, setSelectedTab] = useState("dashboard");
 
-  if (!isAuthenticated || user?.role !== "admin") {
-    navigate("/");
-    return null;
-  }
+  const isAdmin = isAuthenticated && user?.role === "admin";
 
-  const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery();
+  const { data: stats, isLoading: statsLoading } = trpc.admin.getStats.useQuery(
+    undefined,
+    { enabled: isAdmin }
+  );
   const { data: categoryBreakdown, isLoading: categoryLoading } =
-    trpc.admin.getCategoryBreakdown.useQuery();
+    trpc.admin.getCategoryBreakdown.useQuery(undefined, { enabled: isAdmin });
   const { data: topContributors, isLoading: contributorsLoading } =
-    trpc.admin.getTopContributors.useQuery({ limit: 10 });
+    trpc.admin.getTopContributors.useQuery({ limit: 10 }, { enabled: isAdmin });
 
-  const { data: issues = [] } = trpc.issues.list.useQuery({
-    status: "pending",
-    limit: 50,
-  });
+  const { data: issues = [] } = trpc.issues.list.useQuery(
+    { status: "pending", limit: 50 },
+    { enabled: isAdmin }
+  );
 
   const updateStatusMutation = trpc.issues.updateStatus.useMutation({
     onSuccess: () => {
@@ -54,6 +54,11 @@ export default function AdminPanel() {
       toast.error("Failed to update issue status");
     },
   });
+
+  if (!isAdmin) {
+    navigate("/");
+    return null;
+  }
 
   const handleStatusChange = (
     issueId: number,

@@ -94,18 +94,20 @@ export default function Dashboard() {
   const [search, setSearch] = useState<string>("");
   const [page, setPage] = useState(0);
 
-  if (!isAuthenticated) {
-    navigate("/");
-    return null;
-  }
-
   const { data: issues = [], isLoading } = trpc.issues.list.useQuery({
     category: category || undefined,
     status: status || undefined,
     search: search || undefined,
     limit: 20,
     offset: page * 20,
+  }, {
+    enabled: isAuthenticated,
   });
+
+  if (!isAuthenticated) {
+    navigate("/");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

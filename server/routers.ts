@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router, adminProcedure } from "./_core/trpc";
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import * as db from "./db";
+import { storeOtp, sendOtpEmail, verifyOtp } from "./_core/email-otp";
+import { ENV } from "./_core/env";
+import { sdk } from "./_core/sdk";
 
 // ============= VALIDATION SCHEMAS =============
 
@@ -52,6 +55,60 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+
+    requestOtp: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        const otp = storeOtp(input.email);
+        await sendOtpEmail(input.email, otp);
+        return { success: true } as const;
+      }),
+
+    verifyOtp: publicProcedure
+      .input(z.object({ email: z.string().email(), otp: z.string().min(4).max(8) }))
+      .mutation(async ({ input, ctx }) => {
+        const result = verifyOtp(input.email, input.otp);
+
+        if (!result.success) {
+          const msgMap: Record<string, string> = {
+            not_found: "No OTP found for this email. Please request a new code.",
+            expired: "OTP has expired. Please request a new code.",
+            invalid: "Invalid OTP. Please check and try again.",
+            too_many_attempts: "Too many failed attempts. Please request a new code.",
+          };
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: msgMap[result.reason] ?? "OTP verification failed.",
+          });
+        }
+
+        // Upsert the user with a synthetic openId based on email
+        const openId = `email:${input.email.toLowerCase()}`;
+        const isAdmin =
+          input.email.toLowerCase() === ENV.adminEmail?.toLowerCase();
+
+        await db.upsertUser({
+          openId,
+          email: input.email,
+          loginMethod: "email_otp",
+          lastSignedIn: new Date(),
+          ...(isAdmin ? { role: "admin" } : {}),
+        });
+
+        const user = await db.getUserByOpenId(openId);
+        const sessionToken = await sdk.createSessionToken(openId, {
+          name: user?.name || "",
+          expiresInMs: ONE_YEAR_MS,
+        });
+
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        ctx.res.cookie(COOKIE_NAME, sessionToken, {
+          ...cookieOptions,
+          maxAge: ONE_YEAR_MS,
+        });
+
+        return { success: true } as const;
+      }),
   }),
 
   // ============= ISSUES =============
@@ -298,6 +355,25 @@ export const appRouter = router({
       .input(z.object({ notificationId: z.number() }))
       .mutation(async ({ input }) => {
         await db.markNotificationAsRead(input.notificationId);
+        return { success: true };
+      }),
+
+    send: adminProcedure
+      .input(
+        z.object({
+          userId: z.number(),
+          issueId: z.number().optional(),
+          type: z.string(),
+          message: z.string().min(1).max(500),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.createNotification({
+          userId: input.userId,
+          issueId: input.issueId,
+          type: input.type,
+          message: input.message,
+        });
         return { success: true };
       }),
   }),

@@ -15,3 +15,9 @@ export const getLoginUrl = () => {
 
   return url.toString();
 };
+
+// Google OAuth – always redirects through /api/oauth/google so the server
+// can inject the correct redirect_uri at runtime.
+export const getGoogleLoginUrl = () => {
+  return `${window.location.origin}/api/oauth/google`;
+};

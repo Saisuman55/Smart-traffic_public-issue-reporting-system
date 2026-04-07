@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1775552692310,
+      "tag": "0000_woozy_edwin_jarvis",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1775552815980,
+      "tag": "0001_green_zeigeist",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1775552833084,
+      "tag": "0002_handy_marvel_boy",
+      "breakpoints": true
+    }
+  ]
 }

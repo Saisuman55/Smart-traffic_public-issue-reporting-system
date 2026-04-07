@@ -27,8 +27,8 @@ export default function Home() {
                 </Button>
               </>
             ) : (
-              <Button onClick={() => navigate("/dashboard")}>
-                Get Started
+              <Button onClick={() => navigate("/login")}>
+                Sign In
               </Button>
             )}
           </div>

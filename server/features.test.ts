@@ -185,6 +185,18 @@ describe("Authentication", () => {
     const result = await caller.auth.logout();
     expect(result.success).toBe(true);
   });
+
+  it("should expose requestOtp procedure", async () => {
+    const ctx = createMockContext();
+    const caller = appRouter.createCaller(ctx);
+    expect(caller.auth.requestOtp).toBeDefined();
+  });
+
+  it("should expose verifyOtp procedure", async () => {
+    const ctx = createMockContext();
+    const caller = appRouter.createCaller(ctx);
+    expect(caller.auth.verifyOtp).toBeDefined();
+  });
 });
 
 describe("Notifications", () => {

@@ -88,22 +88,24 @@ describe("Form Validation - Issue Creation", () => {
   });
 
   it("accepts a valid issue payload with all required fields", async () => {
-    // The procedure is defined and reachable — a database error is expected
-    // in a test environment, not a validation error.
+    // Valid inputs should not produce a Zod validation error (BAD_REQUEST).
+    // A runtime error from the database being unavailable is expected in CI.
     const ctx = createMockContext();
     const caller = appRouter.createCaller(ctx);
 
-    const promise = caller.issues.create({
-      title: "Large pothole on Main Street",
-      description: "There is a large pothole that is causing vehicle damage.",
-      category: "road_damage",
-      latitude: "12.9716",
-      longitude: "77.5946",
-      address: "123 Main Street",
-    });
-
-    // Expect either success or a non-validation runtime error (e.g., DB unavailable)
-    await expect(promise).rejects.not.toThrow("invalid_type");
+    try {
+      await caller.issues.create({
+        title: "Large pothole on Main Street",
+        description: "There is a large pothole that is causing vehicle damage.",
+        category: "road_damage",
+        latitude: "12.9716",
+        longitude: "77.5946",
+        address: "123 Main Street",
+      });
+    } catch (err: any) {
+      // A DB-unavailable error is acceptable; a validation error is not.
+      expect(err?.data?.code).not.toBe("BAD_REQUEST");
+    }
   });
 });
 

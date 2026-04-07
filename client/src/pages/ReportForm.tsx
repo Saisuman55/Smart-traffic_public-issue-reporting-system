@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { uploadFileToS3 } from "@/lib/uploadFile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -47,6 +48,7 @@ export default function ReportForm() {
 
   // Form state
   const [imageUrl, setImageUrl] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
   const [category, setCategory] = useState<string>("");
   const [latitude, setLatitude] = useState<string>("");
   const [longitude, setLongitude] = useState<string>("");
@@ -82,16 +84,20 @@ export default function ReportForm() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real app, upload to S3
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setImageUrl(event.target?.result as string);
+      setIsUploading(true);
+      try {
+        const url = await uploadFileToS3(file);
+        setImageUrl(url);
         toast.success("Image uploaded!");
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        toast.error("Failed to upload image. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -116,7 +122,7 @@ export default function ReportForm() {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return !!imageUrl;
+        return !!imageUrl && !isUploading;
       case 2:
         return !!category;
       case 3:
@@ -180,7 +186,12 @@ export default function ReportForm() {
             <div>
               <h2 className="text-xl font-semibold mb-4">Upload Photo Evidence</h2>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                {imageUrl ? (
+                {isUploading ? (
+                  <div>
+                    <Loader2 className="w-12 h-12 text-blue-600 mx-auto mb-4 animate-spin" />
+                    <p className="text-gray-600">Uploading photo...</p>
+                  </div>
+                ) : imageUrl ? (
                   <div>
                     <img
                       src={imageUrl}
@@ -211,6 +222,7 @@ export default function ReportForm() {
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="hidden"
+                  disabled={isUploading}
                 />
               </div>
             </div>

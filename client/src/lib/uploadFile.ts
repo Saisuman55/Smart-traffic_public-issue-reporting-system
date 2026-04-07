@@ -9,9 +9,6 @@ export async function uploadFileToS3(
   onProgress?: (progress: number) => void
 ): Promise<string> {
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-
     const xhr = new XMLHttpRequest();
 
     // Track upload progress
@@ -43,7 +40,8 @@ export async function uploadFileToS3(
       });
 
       xhr.open("POST", "/api/upload");
-      xhr.send(formData);
+      xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+      xhr.send(file);
     });
   } catch (error) {
     console.error("Upload error:", error);

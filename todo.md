@@ -8,7 +8,7 @@
 
 ## Phase 2: Authentication & User Management
 - [x] Implement user profile page with stats display
-- [ ] Add profile update functionality (name, bio, avatar)
+- [x] Add profile update functionality (name, bio, avatar)
 - [x] Create user leaderboard (top contributors by verified reports)
 - [x] Add trust score display and management
 - [x] Implement user role management (user vs admin)
@@ -78,18 +78,18 @@
 - [x] Write vitest tests for admin moderation
 - [x] Write vitest tests for community features
 - [x] Test all API endpoints
-- [ ] Test form validation
+- [x] Test form validation
 - [ ] Test map integration
 - [ ] Test file upload functionality
 - [ ] Cross-browser testing
 
 ## Phase 10: Deployment & Launch
-- [ ] Set up environment variables
-- [ ] Configure database connection
+- [x] Set up environment variables (.env.example created)
+- [x] Configure database connection (Drizzle ORM + MySQL)
 - [ ] Set up S3 bucket for file storage
 - [ ] Configure Google Maps API
-- [ ] Test production build
-- [ ] Deploy frontend and backend
+- [x] Test production build
+- [ ] Deploy frontend and backend to Vercel
 - [ ] Set up monitoring and logging
-- [ ] Create user documentation
+- [x] Create user documentation (README.md)
 - [ ] Launch and gather feedback

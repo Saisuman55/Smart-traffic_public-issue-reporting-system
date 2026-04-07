@@ -2,7 +2,17 @@ import { randomInt } from "crypto";
 import { ENV } from "./env";
 
 // ---------------------------------------------------------------------------
+// OpenId prefix constants (keep in sync with google-oauth.ts)
+// ---------------------------------------------------------------------------
+
+export const OPENID_PREFIX_EMAIL = "email:";
+export const OPENID_PREFIX_GOOGLE = "google:";
+
+// ---------------------------------------------------------------------------
 // In-memory OTP store (TTL-based)
+// NOTE: In-memory storage works for single-instance deployments. For
+// serverless/multi-instance deployments (e.g. Vercel), replace with a
+// shared store such as Redis or a database table.
 // ---------------------------------------------------------------------------
 
 interface OtpEntry {

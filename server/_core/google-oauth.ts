@@ -3,6 +3,7 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { ENV } from "./env";
+import { OPENID_PREFIX_GOOGLE } from "./email-otp";
 import { sdk } from "./sdk";
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -121,7 +122,7 @@ export function registerGoogleOAuthRoutes(app: Express) {
       }
 
       // Use google: prefix so it is distinct from Manus openIds
-      const openId = `google:${googleUser.id}`;
+      const openId = `${OPENID_PREFIX_GOOGLE}${googleUser.id}`;
 
       const isAdmin =
         googleUser.email?.toLowerCase() === ENV.adminEmail?.toLowerCase();

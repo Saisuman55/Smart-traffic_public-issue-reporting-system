@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { MapPin, Mail, Chrome } from "lucide-react";
+import { MapPin, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -8,7 +8,6 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useGoogleAuth } from "@/_core/hooks/useGoogleAuth";
 import { getLoginUrl } from "@/const";
 import EmailOtpDialog from "@/components/EmailOtpDialog";
-import { useEffect } from "react";
 
 export default function LoginPage() {
   const { isAuthenticated } = useAuth();

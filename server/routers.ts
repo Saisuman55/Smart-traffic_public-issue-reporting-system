@@ -5,7 +5,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import * as db from "./db";
-import { storeOtp, sendOtpEmail, verifyOtp } from "./_core/email-otp";
+import { storeOtp, sendOtpEmail, verifyOtp, OPENID_PREFIX_EMAIL } from "./_core/email-otp";
 import { ENV } from "./_core/env";
 import { sdk } from "./_core/sdk";
 
@@ -83,7 +83,7 @@ export const appRouter = router({
         }
 
         // Upsert the user with a synthetic openId based on email
-        const openId = `email:${input.email.toLowerCase()}`;
+        const openId = `${OPENID_PREFIX_EMAIL}${input.email.toLowerCase()}`;
         const isAdmin =
           input.email.toLowerCase() === ENV.adminEmail?.toLowerCase();
 

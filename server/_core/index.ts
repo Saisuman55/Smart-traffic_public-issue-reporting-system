@@ -35,6 +35,27 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  
+  // File upload endpoint
+  app.post("/api/upload", express.raw({ type: "application/octet-stream", limit: "50mb" }), async (req, res) => {
+    try {
+      const { storagePut } = await import("../storage");
+      const { nanoid } = await import("nanoid");
+      
+      if (!req.body || req.body.length === 0) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+      
+      const fileKey = `uploads/${Date.now()}-${nanoid()}.jpg`;
+      const { url } = await storagePut(fileKey, req.body, "image/jpeg");
+      
+      res.json({ url });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Upload failed" });
+    }
+  });
+  
   // tRPC API
   app.use(
     "/api/trpc",

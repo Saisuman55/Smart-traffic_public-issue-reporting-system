@@ -15,10 +15,10 @@
 
 ## Phase 3: Issue Reporting System
 - [x] Build multi-step issue reporting form (5 steps)
-- [ ] Implement photo upload with S3 integration
+- [x] Implement photo upload with S3 integration
 - [x] Add category selection dropdown
-- [ ] Integrate Google Maps for location picking
-- [ ] Add reverse geocoding for address display
+- [x] Integrate Google Maps for location picking
+- [x] Add reverse geocoding for address display
 - [x] Implement GPS positioning feature
 - [x] Add form validation and error handling
 - [x] Create issue submission API endpoint
@@ -73,11 +73,11 @@
 - [ ] Polish animations and transitions
 
 ## Phase 9: Testing & Quality Assurance
-- [ ] Write vitest tests for authentication flows
-- [ ] Write vitest tests for issue CRUD operations
-- [ ] Write vitest tests for admin moderation
-- [ ] Write vitest tests for community features
-- [ ] Test all API endpoints
+- [x] Write vitest tests for authentication flows
+- [x] Write vitest tests for issue CRUD operations
+- [x] Write vitest tests for admin moderation
+- [x] Write vitest tests for community features
+- [x] Test all API endpoints
 - [ ] Test form validation
 - [ ] Test map integration
 - [ ] Test file upload functionality

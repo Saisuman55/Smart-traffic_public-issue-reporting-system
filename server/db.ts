@@ -1,4 +1,4 @@
-import { eq, desc, and, like, inArray } from "drizzle-orm";
+import { eq, desc, and, like, or, sql, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   InsertUser,
@@ -139,6 +139,12 @@ export async function createIssue(data: {
     imageUrl: data.imageUrl,
   });
 
+  // Atomically increment totalReports for the reporter
+  await db
+    .update(users)
+    .set({ totalReports: sql`${users.totalReports} + 1` })
+    .where(eq(users.id, data.reporterId));
+
   return result;
 }
 
@@ -179,8 +185,12 @@ export async function listIssues(filters: {
   }
 
   if (filters.search) {
+    const escapedSearch = filters.search.replace(/[%_\\]/g, "\\$&");
     conditions.push(
-      like(issues.title, `%${filters.search}%`)
+      or(
+        like(issues.title, `%${escapedSearch}%`),
+        like(issues.description, `%${escapedSearch}%`)
+      )!
     );
   }
 
@@ -226,6 +236,17 @@ export async function updateIssueStatus(
   }
 
   await db.update(issues).set(updateData).where(eq(issues.id, issueId));
+
+  // Increment verifiedReports for the reporter when status is set to "verified"
+  if (status === "verified") {
+    const issue = await getIssueById(issueId);
+    if (issue) {
+      await db
+        .update(users)
+        .set({ verifiedReports: sql`${users.verifiedReports} + 1` })
+        .where(eq(users.id, issue.reporterId));
+    }
+  }
 }
 
 // ============= COMMENTS =============
@@ -244,14 +265,11 @@ export async function createComment(data: {
     content: data.content,
   });
 
-  // Increment comment count on issue
-  const issue = await getIssueById(data.issueId);
-  if (issue) {
-    await db
-      .update(issues)
-      .set({ commentCount: issue.commentCount + 1 })
-      .where(eq(issues.id, data.issueId));
-  }
+  // Atomically increment comment count on issue
+  await db
+    .update(issues)
+    .set({ commentCount: sql`${issues.commentCount} + 1` })
+    .where(eq(issues.id, data.issueId));
 
   return result;
 }
@@ -275,14 +293,11 @@ export async function deleteComment(commentId: number, issueId: number) {
 
   await db.delete(comments).where(eq(comments.id, commentId));
 
-  // Decrement comment count on issue
-  const issue = await getIssueById(issueId);
-  if (issue && issue.commentCount > 0) {
-    await db
-      .update(issues)
-      .set({ commentCount: issue.commentCount - 1 })
-      .where(eq(issues.id, issueId));
-  }
+  // Atomically decrement comment count on issue (floor at 0)
+  await db
+    .update(issues)
+    .set({ commentCount: sql`GREATEST(${issues.commentCount} - 1, 0)` })
+    .where(eq(issues.id, issueId));
 }
 
 // ============= UPVOTES =============
@@ -306,14 +321,11 @@ export async function toggleUpvote(issueId: number, userId: number) {
         and(eq(upvotes.issueId, issueId), eq(upvotes.userId, userId))
       );
 
-    // Decrement upvote count
-    const issue = await getIssueById(issueId);
-    if (issue && issue.upvoteCount > 0) {
-      await db
-        .update(issues)
-        .set({ upvoteCount: issue.upvoteCount - 1 })
-        .where(eq(issues.id, issueId));
-    }
+    // Atomically decrement upvote count (floor at 0)
+    await db
+      .update(issues)
+      .set({ upvoteCount: sql`GREATEST(${issues.upvoteCount} - 1, 0)` })
+      .where(eq(issues.id, issueId));
 
     return false; // Removed
   } else {
@@ -323,14 +335,11 @@ export async function toggleUpvote(issueId: number, userId: number) {
       userId,
     });
 
-    // Increment upvote count
-    const issue = await getIssueById(issueId);
-    if (issue) {
-      await db
-        .update(issues)
-        .set({ upvoteCount: issue.upvoteCount + 1 })
-        .where(eq(issues.id, issueId));
-    }
+    // Atomically increment upvote count
+    await db
+      .update(issues)
+      .set({ upvoteCount: sql`${issues.upvoteCount} + 1` })
+      .where(eq(issues.id, issueId));
 
     return true; // Added
   }
@@ -382,6 +391,19 @@ export async function getNotifications(userId: number, limit = 20) {
   return result;
 }
 
+export async function getNotificationById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db
+    .select()
+    .from(notifications)
+    .where(eq(notifications.id, id))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
 export async function markNotificationAsRead(notificationId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -398,16 +420,32 @@ export async function getIssueStats() {
   const db = await getDb();
   if (!db) return null;
 
-  const result = await db.select().from(issues);
+  const [totalRow] = await db
+    .select({ total: sql<number>`COUNT(*)` })
+    .from(issues);
+
+  const statusCounts = await db
+    .select({ status: issues.status, count: sql<number>`COUNT(*)` })
+    .from(issues)
+    .groupBy(issues.status);
 
   const stats = {
-    total: result.length,
-    pending: result.filter((i) => i.status === "pending").length,
-    verified: result.filter((i) => i.status === "verified").length,
-    inProgress: result.filter((i) => i.status === "in_progress").length,
-    resolved: result.filter((i) => i.status === "resolved").length,
-    rejected: result.filter((i) => i.status === "rejected").length,
+    total: Number(totalRow.total),
+    pending: 0,
+    verified: 0,
+    inProgress: 0,
+    resolved: 0,
+    rejected: 0,
   };
+
+  for (const row of statusCounts) {
+    const cnt = Number(row.count);
+    if (row.status === "pending") stats.pending = cnt;
+    else if (row.status === "verified") stats.verified = cnt;
+    else if (row.status === "in_progress") stats.inProgress = cnt;
+    else if (row.status === "resolved") stats.resolved = cnt;
+    else if (row.status === "rejected") stats.rejected = cnt;
+  }
 
   return stats;
 }
@@ -416,7 +454,10 @@ export async function getCategoryBreakdown() {
   const db = await getDb();
   if (!db) return [];
 
-  const result = await db.select().from(issues);
+  const result = await db
+    .select({ category: issues.category, count: sql<number>`COUNT(*)` })
+    .from(issues)
+    .groupBy(issues.category);
 
   const categories = [
     "road_damage",
@@ -429,7 +470,7 @@ export async function getCategoryBreakdown() {
 
   return categories.map((cat) => ({
     category: cat,
-    count: result.filter((i) => i.category === cat).length,
+    count: Number(result.find((r) => r.category === cat)?.count ?? 0),
   }));
 }
 

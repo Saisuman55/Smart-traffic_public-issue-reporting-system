@@ -77,11 +77,16 @@ export default function ReportFormEnhanced() {
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setLatitude(position.coords.latitude.toString());
-        setLongitude(position.coords.longitude.toString());
-        toast.success("Location captured!");
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude.toString());
+          setLongitude(position.coords.longitude.toString());
+          toast.success("Location captured!");
+        },
+        () => {
+          toast.error("Location access denied or unavailable");
+        }
+      );
     } else {
       toast.error("Geolocation not supported");
     }

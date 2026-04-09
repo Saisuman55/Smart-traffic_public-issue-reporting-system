@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { uploadFileToS3 } from "@/lib/uploadFile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,6 +45,8 @@ export default function ReportForm() {
   const { isAuthenticated } = useAuth();
   const [, navigate] = useLocation();
   const [step, setStep] = useState(1);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Form state
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -72,26 +75,46 @@ export default function ReportForm() {
 
   const handleGetLocation = () => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setLatitude(position.coords.latitude.toString());
-        setLongitude(position.coords.longitude.toString());
-        toast.success("Location captured!");
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude.toString());
+          setLongitude(position.coords.longitude.toString());
+          toast.success("Location captured!");
+        },
+        () => {
+          toast.error("Location access denied or unavailable");
+        }
+      );
     } else {
       toast.error("Geolocation not supported");
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real app, upload to S3
+      setIsUploading(true);
+
+      // Show local preview while uploading
       const reader = new FileReader();
       reader.onload = (event) => {
         setImageUrl(event.target?.result as string);
-        toast.success("Image uploaded!");
       };
       reader.readAsDataURL(file);
+
+      // Upload to S3
+      try {
+        setUploadProgress(0);
+        const url = await uploadFileToS3(file, setUploadProgress);
+        setImageUrl(url);
+        setUploadProgress(0);
+        toast.success("Image uploaded successfully!");
+      } catch (error) {
+        toast.error("Failed to upload image");
+        setImageUrl("");
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -116,7 +139,7 @@ export default function ReportForm() {
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return !!imageUrl;
+        return !!imageUrl && !isUploading && !imageUrl.startsWith("data:");
       case 2:
         return !!category;
       case 3:
@@ -187,6 +210,14 @@ export default function ReportForm() {
                       alt="Preview"
                       className="max-h-64 mx-auto rounded mb-4"
                     />
+                    {isUploading && (
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all"
+                          style={{ width: `${uploadProgress}%` }}
+                        />
+                      </div>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => document.getElementById("photo-input")?.click()}

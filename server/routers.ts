@@ -8,6 +8,8 @@ import * as db from "./db";
 
 // ============= VALIDATION SCHEMAS =============
 
+const latLngRegex = /^-?\d+(\.\d+)?$/;
+
 const createIssueSchema = z.object({
   title: z.string().min(5).max(255),
   description: z.string().min(10).max(5000),
@@ -19,8 +21,8 @@ const createIssueSchema = z.object({
     "electrical",
     "other",
   ]),
-  latitude: z.string(),
-  longitude: z.string(),
+  latitude: z.string().regex(latLngRegex, "Invalid latitude format"),
+  longitude: z.string().regex(latLngRegex, "Invalid longitude format"),
   address: z.string().optional(),
   landmark: z.string().optional(),
   imageUrl: z.string().optional(),
@@ -90,22 +92,6 @@ export const appRouter = router({
           reporterId: ctx.user.id,
           ...input,
         });
-
-        // Update user's report count
-        const user = await db.getUserById(ctx.user.id);
-        if (user) {
-          const newTotal = (user.totalReports || 0) + 1;
-          // Update in database
-          const dbInstance = await db.getDb();
-          if (dbInstance) {
-            const { users } = await import("../drizzle/schema");
-            const { eq } = await import("drizzle-orm");
-            await dbInstance
-              .update(users)
-              .set({ totalReports: newTotal })
-              .where(eq(users.id, ctx.user.id));
-          }
-        }
 
         return result;
       }),
@@ -269,9 +255,13 @@ export const appRouter = router({
         const { eq } = await import("drizzle-orm");
 
         const updateData: any = {};
-        if (input.name) updateData.name = input.name;
-        if (input.bio) updateData.bio = input.bio;
-        if (input.avatar) updateData.avatar = input.avatar;
+        if (input.name !== undefined) updateData.name = input.name;
+        if (input.bio !== undefined) updateData.bio = input.bio;
+        if (input.avatar !== undefined) updateData.avatar = input.avatar;
+
+        if (Object.keys(updateData).length === 0) {
+          return { success: true };
+        }
 
         await dbInstance
           .update(users)
@@ -296,7 +286,23 @@ export const appRouter = router({
 
     markAsRead: protectedProcedure
       .input(z.object({ notificationId: z.number() }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const notification = await db.getNotificationById(input.notificationId);
+
+        if (!notification) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Notification not found",
+          });
+        }
+
+        if (notification.userId !== ctx.user.id) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only mark your own notifications as read",
+          });
+        }
+
         await db.markNotificationAsRead(input.notificationId);
         return { success: true };
       }),

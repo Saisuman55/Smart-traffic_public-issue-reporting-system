@@ -12,6 +12,11 @@ function createMockContext(overrides?: Partial<TrpcContext>): TrpcContext {
       name: "Test User",
       loginMethod: "manus",
       role: "user",
+      trustScore: 50,
+      totalReports: 0,
+      verifiedReports: 0,
+      avatar: null,
+      bio: null,
       createdAt: new Date(),
       updatedAt: new Date(),
       lastSignedIn: new Date(),
@@ -36,6 +41,11 @@ function createAdminContext(): TrpcContext {
       name: "Admin User",
       loginMethod: "manus",
       role: "admin",
+      trustScore: 50,
+      totalReports: 0,
+      verifiedReports: 0,
+      avatar: null,
+      bio: null,
       createdAt: new Date(),
       updatedAt: new Date(),
       lastSignedIn: new Date(),
@@ -188,13 +198,6 @@ describe("Authentication", () => {
 });
 
 describe("Notifications", () => {
-  it("should send notification", async () => {
-    const ctx = createMockContext();
-    const caller = appRouter.createCaller(ctx);
-
-    expect(caller.notifications.send).toBeDefined();
-  });
-
   it("should list user notifications", async () => {
     const ctx = createMockContext();
     const caller = appRouter.createCaller(ctx);

@@ -118,23 +118,22 @@ export const imageProcessor = async (
     }
 
     // Now continue with regular path validation
-    // Remove leading slash if present for consistent handling
-    const normalized = path.normalize(src);
-    const cleanPath = normalized.startsWith('/')
-      ? normalized.substring(1)
-      : normalized;
+    // Convert Windows separators first and then normalize using POSIX semantics
+    // to keep path checks stable across platforms.
+    const slashNormalized = src.replace(/\\/g, '/');
+    const withoutLeadingSlash = slashNormalized.startsWith('/')
+      ? slashNormalized.substring(1)
+      : slashNormalized;
+    const normalizedPath = path.posix.normalize(withoutLeadingSlash);
 
-    // Prevent directory traversal attacks
+    // Prevent directory traversal and null byte attacks
     if (
-      cleanPath.includes('..') ||
-      cleanPath.includes('\\') ||
-      cleanPath.includes('\0')
+      normalizedPath.includes('..') ||
+      normalizedPath.startsWith('/') ||
+      normalizedPath.includes('\0')
     ) {
       throw new Error('Invalid characters in image path');
     }
-
-    // Normalize path to prevent bypasses like //media or /./media
-    const normalizedPath = cleanPath.replace(/\\/g, '/');
 
     // Only allow specific directories from project root
     const allowedPaths = ['media/', 'public/', 'themes/'];
